@@ -72,10 +72,12 @@ class Optimizer():
             X, yPred, m, b = self.gradientDescent()
         elif currentOptimizer == "sgd":
             X, yPred, m, b = self.stochasticGradientDescent(batchSize)
-        elif currentOptimizer == "sgdmom":
+        elif currentOptimizer == "sgdMom":
             X, yPred, m, b = self.stochasticGradientDescentAndMomentum(batchSize, rho)
+        elif currentOptimizer == "sgdNesMom":
+            X, yPred, m, b = self.stochasticGradientDescentAndNesterovMomentum(batchSize, rho)
         else:
-            raise ValueError("Invalid optimizer type. Choose 'gd' or 'sgd'.")
+            raise ValueError("Invalid optimizer type.")
 
         # Get the history before clearing it
         history, mse = self.getLineParamsAndErrors()
@@ -117,6 +119,19 @@ class Optimizer():
         yPred = w[0] * self.X + w[1]
         return self.X, yPred, w[0], w[1]
 
+    def stochasticGradientDescentAndNesterovMomentum(self, batchSize, rho=0.9):
+        w = self.initWeights()
+        v = 0
+        for _ in range(self.epochs):
+            dw = self.computeGradient(w, batchSize)
+            old_v = v
+            v = rho * v - self.learningRate * dw
+            w = w - rho * old_v - (1-rho) * v
+
+        self.mPred, self.bPred = w
+        yPred = w[0] * self.X + w[1]
+        return self.X, yPred, w[0], w[1]
+
 def main():
     # Create data points
     X, y, mTrue, bTrue = generateTestSamples(5000)
@@ -135,8 +150,11 @@ def main():
     _, yPredSGD, mPredSGD, bPredSGD, historyParamsSGD, mseSGD = opt.predict("sgd", batchSize=200)
     print(f"Pred values: m={round(float(mPredSGD), 1)}, b={round(float(bPredSGD), 1)}")
 
-    _, yPredSGDmom, mPredSGDmom, bPredSGDmom, historyParamsSGDmom, mseSGDmom = opt.predict("sgdmom", batchSize=200, rho=0.9)
+    _, yPredSGDmom, mPredSGDmom, bPredSGDmom, historyParamsSGDmom, mseSGDmom = opt.predict("sgdMom", batchSize=200, rho=0.9)
     print(f"Pred values: m={round(float(mPredSGDmom), 1)}, b={round(float(bPredSGDmom), 1)}")
+
+    _, yPredSGDnesmom, mPredSGDnesmom, bPredSGDnesmom, historyParamsSGDnesmom, mseSGDnesmom = opt.predict("sgdMom", batchSize=200, rho=0.9)
+    print(f"Pred values: m={round(float(mPredSGDnesmom), 1)}, b={round(float(bPredSGDnesmom), 1)}")
 
     # Output
     # Create a figure with two subplots: one for the regression lines and one for the error
@@ -144,9 +162,11 @@ def main():
 
     # Plot the regression lines on the first subplot (ax1)
     ax1.scatter(X, y, alpha=0.6, s=10, label="Data")
+    ax1.plot(X, yPredRef, color="red", label="True Line", linewidth=3)
     ax1.plot(X, yPredGD, color="orange", label="GD", linewidth=2)
     ax1.plot(X, yPredSGD, color="purple", label="SGD", linewidth=2)
-    ax1.plot(X, yPredSGDmom, color="green", label="SGD + Momentum", linewidth=2)
+    ax1.plot(X, yPredSGDmom, color="#00FF00", label="SGD + Momentum", linewidth=2)
+    ax1.plot(X, yPredSGDnesmom, color="brown", label="SGD + Nesterov Momentum", linewidth=2)
 
     # Plot each line from historyParams on ax1
     for i, params in enumerate(historyParamsGD):
@@ -170,7 +190,14 @@ def main():
         yPredHistory = X * m + b  # Calculate predicted y for each parameter set
         ax1.plot(X, yPredHistory, color="#00FF00", linewidth=1)  # Thin line for history
 
-    ax1.plot(X, yPredRef, color="red", label="Ref Line", linewidth=3)
+    for i, params in enumerate(historyParamsSGDnesmom):
+        if i % 10 != 0:
+            continue
+        m, b = params
+        yPredHistory = X * m + b  # Calculate predicted y for each parameter set
+        ax1.plot(X, yPredHistory, color="brown", linewidth=1)  # Thin line for history
+
+    ax1.plot(X, yPredRef, color="red", linewidth=3)
 
 
     # Customize the first subplot (regression lines)
@@ -180,9 +207,10 @@ def main():
     ax1.legend()
 
     # Plot the error (MSE) on the second subplot (ax2)
-    ax2.plot(range(len(mseGD)), mseGD, color="orange", label="MSE")
-    ax2.plot(range(len(mseSGD)), mseSGD, color="purple", label="MSE")
-    ax2.plot(range(len(mseSGDmom)), mseSGDmom, color="#00FF00", label="MSE")
+    ax2.plot(range(len(mseGD)), mseGD, color="orange", label="GD")
+    ax2.plot(range(len(mseSGD)), mseSGD, color="purple", label="SGD")
+    ax2.plot(range(len(mseSGDmom)), mseSGDmom, color="#00FF00", label="SGD + Momentum")
+    ax2.plot(range(len(mseSGDnesmom)), mseSGDnesmom, color="brown", label="SGD + Nesterov Momentum")
     ax2.set_title("Mean Squared Error over epochs")
     ax2.set_xlabel("epochs")
     ax2.set_ylabel("MSE")
