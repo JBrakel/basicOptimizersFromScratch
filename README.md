@@ -19,6 +19,7 @@ Optimization algorithms are essential in machine learning as they help in adjust
 ### 1. **Gradient Descent (GD)**
 - **Description:** The algorithm updates the weights by moving in the opposite direction of the gradient of the loss function.
 - **Formula:**
+
   $$w = w - \alpha \cdot \nabla L(w) $$
 
   where:
@@ -32,6 +33,7 @@ Optimization algorithms are essential in machine learning as they help in adjust
 ### 2. **Stochastic Gradient Descent (SGD)**
 - **Description:** Unlike GD, SGD updates weights using a single data point (or mini-batch), leading to faster updates but more variance in the trajectory.
 - **Formula:**
+
   $$w = w - \alpha \cdot \nabla L(w; x_i)$$
 
   where:
@@ -45,6 +47,7 @@ Optimization algorithms are essential in machine learning as they help in adjust
 ### 3. **Momentum**
 - **Description:** Momentum adds a velocity term to the weight update, helping to accelerate the algorithm in the right direction and smooth out updates.
 - **Formula:**
+
   $$v = \rho \cdot v + \alpha \cdot \nabla L(w)$$
 
   $$w = w - v$$
@@ -61,6 +64,7 @@ Optimization algorithms are essential in machine learning as they help in adjust
 ### 4. **Nesterov Momentum**
 - **Description:** Nesterov momentum looks ahead by computing the gradient at the "look-ahead" position, often providing better convergence and more accurate updates.
 - **Formula:**
+
   $$v = \rho \cdot v + \alpha \cdot \nabla L(w - \rho \cdot v)$$
   
   $$w = w - v$$
@@ -77,13 +81,13 @@ Optimization algorithms are essential in machine learning as they help in adjust
 ### 5. **Adagrad**
 - **Description:** Adagrad adapts the learning rate for each parameter, allowing it to work better with sparse data and providing a larger learning rate for infrequent parameters.
 - **Formula:**
-  $$
-  w = w - \frac{\alpha}{\sqrt{G_t + \epsilon}} \cdot \nabla L(w)
-  $$
+
+  $$w = w - \frac{\alpha}{\sqrt{G_t + \epsilon}} \cdot \nabla L(w)$$
+
   where:
-  - \( \alpha \) is the learning rate,
-  - \( G_t \) is the sum of squared gradients up to time step \( t \),
-  - \( \epsilon \) is a small constant for numerical stability.
+  - $\alpha$ is the learning rate,
+  - $G_t$ is the sum of squared gradients up to time step $t$,
+  - $\epsilon$ is a small constant for numerical stability.
 
 ![Adagrad Optimizer](results/adagrad.png)
 
@@ -92,16 +96,15 @@ Optimization algorithms are essential in machine learning as they help in adjust
 ### 6. **RMSProp**
 - **Description:** RMSProp is similar to Adagrad but fixes the diminishing learning rates by using an exponentially decaying average of squared gradients.
 - **Formula:**
-  $$
-  gradSquared = \rho \cdot gradSquared + (1 - \rho) \cdot (\nabla L(w))^2
-  $$
-  $$
-  w = w - \frac{\alpha}{\sqrt{gradSquared + \epsilon}} \cdot \nabla L(w)
-  $$
+
+  $$g = \rho \cdot g + (1 - \rho) \cdot (\nabla L(w))^2$$
+
+  $$w = w - \frac{\alpha}{\sqrt{g + \epsilon}} \cdot \nabla L(w)$$
+
   where:
-  - \( \alpha \) is the learning rate,
-  - \( \rho \) is the decay rate (typically between 0.9 and 0.99),
-  - \( \epsilon \) is a small constant for numerical stability.
+  - $\alpha$ is the learning rate,
+  - $\rho$ is the decay rate (typically between 0.9 and 0.99),
+  - $\epsilon$ is a small constant for numerical stability.
 
 ![RMSProp Optimizer](results/rmsprop.png)
 
@@ -110,6 +113,7 @@ Optimization algorithms are essential in machine learning as they help in adjust
 ### 7. **Adam**
 - **Description:** Adam combines the advantages of momentum and RMSProp, using both the first and second moments of the gradients (mean and uncentered variance).
 - **Formula:**
+
   $$m_t = \beta_1 \cdot m_{t-1} + (1 - \beta_1) \cdot \nabla L(w)$$
 
   $$v_t = \beta_2 \cdot v_{t-1} + (1 - \beta_2) \cdot (\nabla L(w))^2$$
