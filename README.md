@@ -19,12 +19,11 @@ Optimization algorithms are essential in machine learning as they help in adjust
 ### 1. **Gradient Descent (GD)**
 - **Description:** The algorithm updates the weights by moving in the opposite direction of the gradient of the loss function.
 - **Formula:**
-  $$
-  w = w - \alpha \cdot \nabla L(w)
-  $$
+  $$w = w - \alpha \cdot \nabla L(w) $$
+
   where:
-  - \( \alpha \) is the learning rate,
-  - \( \nabla L(w) \) is the gradient of the loss function with respect to the weights.
+  - $\alpha$ is the learning rate,
+  - $nabla L(w)$ is the gradient of the loss function with respect to the weights.
 
 ![GD Optimizer](results/gd.png)
 
@@ -33,12 +32,11 @@ Optimization algorithms are essential in machine learning as they help in adjust
 ### 2. **Stochastic Gradient Descent (SGD)**
 - **Description:** Unlike GD, SGD updates weights using a single data point (or mini-batch), leading to faster updates but more variance in the trajectory.
 - **Formula:**
-  $$
-  w = w - \alpha \cdot \nabla L(w; x_i)
-  $$
+  $$w = w - \alpha \cdot \nabla L(w; x_i)$$
+
   where:
-  - \( \alpha \) is the learning rate,
-  - \( \nabla L(w; x_i) \) is the gradient with respect to a single data point \( x_i \).
+  - $\alpha$ is the learning rate,
+  - $\nabla L(w; x_i)$ is the gradient with respect to a single data point $x_i$.
 
 ![SGD Optimizer](results/sgd.png)
 
@@ -47,16 +45,14 @@ Optimization algorithms are essential in machine learning as they help in adjust
 ### 3. **Momentum**
 - **Description:** Momentum adds a velocity term to the weight update, helping to accelerate the algorithm in the right direction and smooth out updates.
 - **Formula:**
-  $$
-  v = \rho \cdot v + \alpha \cdot \nabla L(w)
-  $$
-  $$
-  w = w - v
-  $$
+  $$v = \rho \cdot v + \alpha \cdot \nabla L(w)$$
+
+  $$w = w - v$$
+
   where:
-  - \( \alpha \) is the learning rate,
-  - \( \rho \) is the momentum factor (usually between 0.5 and 0.9),
-  - \( v \) is the velocity term (previous weight update).
+  - $\alpha$ is the learning rate,
+  - $\rho$ is the momentum factor (usually between 0.5 and 0.9),
+  - $v$ is the velocity term (previous weight update).
 
 ![Momentum Optimizer](results/mom.png)
 
@@ -65,16 +61,14 @@ Optimization algorithms are essential in machine learning as they help in adjust
 ### 4. **Nesterov Momentum**
 - **Description:** Nesterov momentum looks ahead by computing the gradient at the "look-ahead" position, often providing better convergence and more accurate updates.
 - **Formula:**
-  $$
-  v = \rho \cdot v + \alpha \cdot \nabla L(w - \rho \cdot v)
-  $$
-  $$
-  w = w - v
-  $$
+  $$v = \rho \cdot v + \alpha \cdot \nabla L(w - \rho \cdot v)$$
+  
+  $$w = w - v$$
+
   where:
-  - \( \alpha \) is the learning rate,
-  - \( \rho \) is the momentum factor,
-  - \( v \) is the velocity term.
+  - $\alpha$ is the learning rate,
+  - $\rho$ is the momentum factor,
+  - $v$ is the velocity term.
 
 ![Nesterov Momentum Optimizer](results/nestMom.png)
 
@@ -125,9 +119,9 @@ Optimization algorithms are essential in machine learning as they help in adjust
   $$w = w - \frac{\alpha}{\sqrt{v_{\hat{t}}} + \epsilon} \cdot m_{\hat{t}}$$
 
   where:
-  - $\alpha$: is the learning rate,
-  - \( \beta_1 \) and \( \beta_2 \) are the exponential decay rates for the moment estimates (typically \( \beta_1 = 0.9 \) and \( \beta_2 = 0.999 \)),
-  - \( \epsilon \) is a small constant for numerical stability.
+  - $\alpha$ is the learning rate,
+  - $\beta_1$ and $\beta_2$ are the exponential decay rates for the moment estimates (typically \( \beta_1 = 0.9 \) and \( \beta_2 = 0.999 \)),
+  - $\epsilon$ is a small constant for numerical stability.
 
 ![Adam Optimizer](results/adam.png)
 
