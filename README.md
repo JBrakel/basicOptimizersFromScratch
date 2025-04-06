@@ -117,15 +117,15 @@ Optimization algorithms are essential in machine learning as they help in adjust
 - **Description:** Adam combines the advantages of momentum and RMSProp, using both the first and second moments of the gradients (mean and uncentered variance).
 - **Formula:**
   $$m_t = \beta_1 \cdot m_{t-1} + (1 - \beta_1) \cdot \nabla L(w)$$
-- 
+
   $$v_t = \beta_2 \cdot v_{t-1} + (1 - \beta_2) \cdot (\nabla L(w))^2$$
-- 
+
   $$m_{\hat{t}} = \frac{m_t}{1 - \beta_1^t}, \quad v_{\hat{t}} = \frac{v_t}{1 - \beta_2^t}$$
-- 
+
   $$w = w - \frac{\alpha}{\sqrt{v_{\hat{t}}} + \epsilon} \cdot m_{\hat{t}}$$
-- 
+
   where:
-  - \( \alpha \) is the learning rate,
+  - $\alpha$: is the learning rate,
   - \( \beta_1 \) and \( \beta_2 \) are the exponential decay rates for the moment estimates (typically \( \beta_1 = 0.9 \) and \( \beta_2 = 0.999 \)),
   - \( \epsilon \) is a small constant for numerical stability.
 
