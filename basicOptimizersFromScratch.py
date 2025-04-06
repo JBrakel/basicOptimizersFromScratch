@@ -32,8 +32,8 @@ class Optimizer():
         # Random initialization for m (slope) and b (intercept)
         mInit = np.random.randn() * 0.01
         bInit = np.random.randn() * 0.01
-        wInit = mInit, bInit
-        return wInit
+        # wInit = mInit, bInit
+        return np.array([mInit, bInit])
 
     def saveLineParamsAndErrors(self, w, error):
         self.historyParams.append(w)
@@ -72,10 +72,12 @@ class Optimizer():
             X, yPred, m, b = self.gradientDescent()
         elif currentOptimizer == "sgd":
             X, yPred, m, b = self.stochasticGradientDescent(batchSize)
-        elif currentOptimizer == "sgdMom":
+        elif currentOptimizer == "momentum":
             X, yPred, m, b = self.stochasticGradientDescentAndMomentum(batchSize, rho)
-        elif currentOptimizer == "sgdNesMom":
+        elif currentOptimizer == "nesterov":
             X, yPred, m, b = self.stochasticGradientDescentAndNesterovMomentum(batchSize, rho)
+        elif currentOptimizer == "adagrad":
+            X, yPred, m, b = self.adagrad(batchSize)
         else:
             raise ValueError("Invalid optimizer type.")
 
@@ -93,7 +95,6 @@ class Optimizer():
             dw = self.computeGradient(w)
             w = w - self.learningRate * dw
 
-        self.mPred, self.bPred = w
         yPred = w[0] * self.X + w[1]
         return self.X, yPred, w[0], w[1]
 
@@ -103,7 +104,6 @@ class Optimizer():
             dw = self.computeGradient(w, batchSize)
             w = w - self.learningRate * dw
 
-        self.mPred, self.bPred = w
         yPred = w[0] * self.X + w[1]
         return self.X, yPred, w[0], w[1]
 
@@ -115,7 +115,6 @@ class Optimizer():
             v = rho * v + dw
             w = w - self.learningRate * v
 
-        self.mPred, self.bPred = w
         yPred = w[0] * self.X + w[1]
         return self.X, yPred, w[0], w[1]
 
@@ -126,7 +125,18 @@ class Optimizer():
             dw = self.computeGradient(w, batchSize)
             old_v = v
             v = rho * v - self.learningRate * dw
-            w = w - rho * old_v - (1-rho) * v
+            w -= rho * old_v - (1+rho) * v
+
+        yPred = w[0] * self.X + w[1]
+        return self.X, yPred, w[0], w[1]
+
+    def adagrad(self, batchSize):
+        w = self.initWeights()
+        gradSquared = 0
+        for _ in range(self.epochs):
+            dw = self.computeGradient(w, batchSize)
+            gradSquared = gradSquared + dw * dw
+            w = w - self.learningRate * dw / (np.sqrt(gradSquared) + 1e-7)
 
         self.mPred, self.bPred = w
         yPred = w[0] * self.X + w[1]
@@ -150,12 +160,14 @@ def main():
     _, yPredSGD, mPredSGD, bPredSGD, historyParamsSGD, mseSGD = opt.predict("sgd", batchSize=200)
     print(f"Pred values: m={round(float(mPredSGD), 1)}, b={round(float(bPredSGD), 1)}")
 
-    _, yPredSGDmom, mPredSGDmom, bPredSGDmom, historyParamsSGDmom, mseSGDmom = opt.predict("sgdMom", batchSize=200, rho=0.9)
+    _, yPredSGDmom, mPredSGDmom, bPredSGDmom, historyParamsSGDmom, mseSGDmom = opt.predict("momentum", batchSize=200, rho=0.9)
     print(f"Pred values: m={round(float(mPredSGDmom), 1)}, b={round(float(bPredSGDmom), 1)}")
 
-    _, yPredSGDnesmom, mPredSGDnesmom, bPredSGDnesmom, historyParamsSGDnesmom, mseSGDnesmom = opt.predict("sgdMom", batchSize=200, rho=0.9)
+    _, yPredSGDnesmom, mPredSGDnesmom, bPredSGDnesmom, historyParamsSGDnesmom, mseSGDnesmom = opt.predict("nesterov", batchSize=200, rho=0.9)
     print(f"Pred values: m={round(float(mPredSGDnesmom), 1)}, b={round(float(bPredSGDnesmom), 1)}")
 
+    _, yPredAdagrad, mPredAdagrad, bPredAdagrad, historyParamsAdagrad, mseAdagrad = opt.predict("adagrad", batchSize=200)
+    print(f"Pred values: m={round(float(mPredAdagrad), 1)}, b={round(float(bPredAdagrad), 1)}")
     # Output
     # Create a figure with two subplots: one for the regression lines and one for the error
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6))
@@ -167,6 +179,7 @@ def main():
     ax1.plot(X, yPredSGD, color="purple", label="SGD", linewidth=2)
     ax1.plot(X, yPredSGDmom, color="#00FF00", label="SGD + Momentum", linewidth=2)
     ax1.plot(X, yPredSGDnesmom, color="brown", label="SGD + Nesterov Momentum", linewidth=2)
+    ax1.plot(X, yPredSGDnesmom, color="gray", label="Adagrad", linewidth=2)
 
     # Plot each line from historyParams on ax1
     for i, params in enumerate(historyParamsGD):
@@ -197,6 +210,13 @@ def main():
         yPredHistory = X * m + b  # Calculate predicted y for each parameter set
         ax1.plot(X, yPredHistory, color="brown", linewidth=1)  # Thin line for history
 
+    for i, params in enumerate(historyParamsAdagrad):
+        if i % 10 != 0:
+            continue
+        m, b = params
+        yPredHistory = X * m + b  # Calculate predicted y for each parameter set
+        ax1.plot(X, yPredHistory, color="gray", linewidth=1)  # Thin line for history
+
     ax1.plot(X, yPredRef, color="red", linewidth=3)
 
 
@@ -211,6 +231,7 @@ def main():
     ax2.plot(range(len(mseSGD)), mseSGD, color="purple", label="SGD")
     ax2.plot(range(len(mseSGDmom)), mseSGDmom, color="#00FF00", label="SGD + Momentum")
     ax2.plot(range(len(mseSGDnesmom)), mseSGDnesmom, color="brown", label="SGD + Nesterov Momentum")
+    ax2.plot(range(len(mseAdagrad)), mseAdagrad, color="gray", label="Adagrad")
     ax2.set_title("Mean Squared Error over epochs")
     ax2.set_xlabel("epochs")
     ax2.set_ylabel("MSE")
