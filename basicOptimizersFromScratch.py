@@ -20,8 +20,7 @@ def predictWithRefModel(X, y):
 
 
 class Optimizer():
-    def __init__(self, currentOptimizer, X, y, learningRate=0.01, epochs=50):
-        self.currentOptimizer = currentOptimizer
+    def __init__(self, X, y, learningRate=0.01, epochs=50):
         self.X, self.y = X, y
         self.learningRate = learningRate
         self.epochs = epochs
@@ -67,12 +66,14 @@ class Optimizer():
         self.saveLineParamsAndErrors(w, np.mean(np.square(error)))
         return dw
 
-    def predict(self, currentOptimizer, batchSize=None):
+    def predict(self, currentOptimizer, batchSize=None, rho=0.9):
         # Run the selected optimizer
         if currentOptimizer == "gd":
             X, yPred, m, b = self.gradientDescent()
         elif currentOptimizer == "sgd":
             X, yPred, m, b = self.stochasticGradientDescent(batchSize)
+        elif currentOptimizer == "sgdmom":
+            X, yPred, m, b = self.stochasticGradientDescentAndMomentum(batchSize, rho)
         else:
             raise ValueError("Invalid optimizer type. Choose 'gd' or 'sgd'.")
 
@@ -104,7 +105,17 @@ class Optimizer():
         yPred = w[0] * self.X + w[1]
         return self.X, yPred, w[0], w[1]
 
+    def stochasticGradientDescentAndMomentum(self, batchSize, rho=0.9):
+        w = self.initWeights()
+        v = 0
+        for _ in range(self.epochs):
+            dw = self.computeGradient(w, batchSize)
+            v = rho * v + dw
+            w = w - self.learningRate * v
 
+        self.mPred, self.bPred = w
+        yPred = w[0] * self.X + w[1]
+        return self.X, yPred, w[0], w[1]
 
 def main():
     # Create data points
@@ -116,11 +127,7 @@ def main():
     print(f"Ref  values: m={round(float(mRef), 1)}, b={round(float(bRef), 1)}")
 
     # Choose optimizer
-    currentOptimizer = "Gradient Descent"
-    opt = Optimizer(currentOptimizer,
-                    X, y,
-                    learningRate=0.001,
-                    epochs=500)
+    opt = Optimizer(X, y, learningRate=0.001, epochs=500)
 
     _, yPredGD, mPredGD, bPredGD, historyParamsGD, mseGD = opt.predict("gd")
     print(f"Pred values: m={round(float(mPredGD), 1)}, b={round(float(bPredGD), 1)}")
@@ -128,21 +135,18 @@ def main():
     _, yPredSGD, mPredSGD, bPredSGD, historyParamsSGD, mseSGD = opt.predict("sgd", batchSize=200)
     print(f"Pred values: m={round(float(mPredSGD), 1)}, b={round(float(bPredSGD), 1)}")
 
+    _, yPredSGDmom, mPredSGDmom, bPredSGDmom, historyParamsSGDmom, mseSGDmom = opt.predict("sgdmom", batchSize=200, rho=0.9)
+    print(f"Pred values: m={round(float(mPredSGDmom), 1)}, b={round(float(bPredSGDmom), 1)}")
+
     # Output
     # Create a figure with two subplots: one for the regression lines and one for the error
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6))
 
     # Plot the regression lines on the first subplot (ax1)
     ax1.scatter(X, y, alpha=0.6, s=10, label="Data")
-    ax1.plot(X, yPredGD, color="orange", label=f"{currentOptimizer}", linewidth=2)
-    ax1.plot(X, yPredSGD, color="purple", label=f"{currentOptimizer}", linewidth=2)
-
-    for i, params in enumerate(historyParamsSGD):
-        if i % 10 != 0:
-            continue
-        m, b = params
-        yPredHistory = X * m + b  # Calculate predicted y for each parameter set
-        ax1.plot(X, yPredHistory, color="purple", linewidth=1)  # Thin line for history
+    ax1.plot(X, yPredGD, color="orange", label="GD", linewidth=2)
+    ax1.plot(X, yPredSGD, color="purple", label="SGD", linewidth=2)
+    ax1.plot(X, yPredSGDmom, color="green", label="SGD + Momentum", linewidth=2)
 
     # Plot each line from historyParams on ax1
     for i, params in enumerate(historyParamsGD):
@@ -152,11 +156,25 @@ def main():
         yPredHistory = X * m + b  # Calculate predicted y for each parameter set
         ax1.plot(X, yPredHistory, color="orange", linewidth=1)  # Thin line for history
 
+    for i, params in enumerate(historyParamsSGD):
+        if i % 10 != 0:
+            continue
+        m, b = params
+        yPredHistory = X * m + b  # Calculate predicted y for each parameter set
+        ax1.plot(X, yPredHistory, color="purple", linewidth=1)  # Thin line for history
+
+    for i, params in enumerate(historyParamsSGDmom):
+        if i % 10 != 0:
+            continue
+        m, b = params
+        yPredHistory = X * m + b  # Calculate predicted y for each parameter set
+        ax1.plot(X, yPredHistory, color="#00FF00", linewidth=1)  # Thin line for history
+
     ax1.plot(X, yPredRef, color="red", label="Ref Line", linewidth=3)
 
 
     # Customize the first subplot (regression lines)
-    ax1.set_title(f"Linear Regression with {currentOptimizer}")
+    ax1.set_title(f"Linear Regression with different Optimizers")
     ax1.set_xlabel("X")
     ax1.set_ylabel("y")
     ax1.legend()
@@ -164,6 +182,7 @@ def main():
     # Plot the error (MSE) on the second subplot (ax2)
     ax2.plot(range(len(mseGD)), mseGD, color="orange", label="MSE")
     ax2.plot(range(len(mseSGD)), mseSGD, color="purple", label="MSE")
+    ax2.plot(range(len(mseSGDmom)), mseSGDmom, color="#00FF00", label="MSE")
     ax2.set_title("Mean Squared Error over epochs")
     ax2.set_xlabel("epochs")
     ax2.set_ylabel("MSE")
