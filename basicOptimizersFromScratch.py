@@ -144,7 +144,24 @@ class Optimizer():
         return self.X, yPred, w[0], w[1]
 
     def predict(self, batchSize=None, rho=0.9, beta1=0.9, beta2=0.9, epsilon=1e-7):
-        # Run the selected optimizer
+        """
+        Run the selected optimization algorithm and return the model predictions, parameters, and history.
+
+        Args:
+            batchSize (int, optional): Size of the mini-batch for SGD-based optimizers.
+            rho (float, optional): Momentum term for momentum-based methods (default is 0.9).
+            beta1 (float, optional): First moment estimate decay for Adam (default is 0.9).
+            beta2 (float, optional): Second moment estimate decay for Adam (default is 0.9).
+            epsilon (float, optional): Small value to avoid division by zero in Adam (default is 1e-7).
+
+        Returns:
+            X (array): Input data.
+            yPred (array): Predicted values.
+            m (float): Slope of the regression line.
+            b (float): Intercept of the regression line.
+            history (list): History of model parameters.
+            mse (list): Mean squared error history.
+        """
         if self.currentOptimizer == "gd":
             X, yPred, m, b = self.gradientDescent()
         elif self.currentOptimizer == "sgd":
@@ -170,14 +187,15 @@ class Optimizer():
 
         return X, yPred, m, b, history, mse
 
+
 def main():
-    # Create data points
+    # Create test data with 5000 samples
     X, y, mTrue, bTrue = generateTestSamples(5000)
 
-    # Create reference model
+    # Generate predictions using the reference model
     _, yPredRef, mRef, bRef = predictWithRefModel(X, y)
 
-    # Choose optimizer
+    # Define a dictionary for optimizer names to make it more readable
     dict = {
         "gd": "Gradient Descent",
         "sgd": "Stochastic Gradient Descent",
@@ -187,15 +205,18 @@ def main():
         "rmsprop": "RMSProp",
         "adam": "Adam"
     }
-    currentOptimizer = "adam"
-    epochs = 300
-    lr1, lr2, lr3 = 0.1, 0.1, 0.1
-    bs1, bs2, bs3 = 150, 150, 150
-    rho1, rho2, rho3 = 0.5, 0.9, 0.99
-    beta1_1, beta1_2, beta1_3 = 0.99, 0.9, 0.9
-    beta2_1, beta2_2, beta2_3 = 0.999, 0.95, 0.999
-    epsilon = 1e-7
 
+    # Set the current optimizer and parameters for the experiments
+    currentOptimizer = "adam"  # Can change this to experiment with different optimizers
+    epochs = 300  # Number of iterations for training
+    lr1, lr2, lr3 = 0.1, 0.1, 0.1  # Learning rates
+    bs1, bs2, bs3 = 150, 150, 150  # Batch sizes
+    rho1, rho2, rho3 = 0.5, 0.9, 0.99  # Values for rho (momentum parameter) in optimizers
+    beta1_1, beta1_2, beta1_3 = 0.99, 0.9, 0.9  # Beta1 values for Adam optimizer
+    beta2_1, beta2_2, beta2_3 = 0.999, 0.95, 0.999  # Beta2 values for Adam optimizer
+    epsilon = 1e-7  # Small constant to prevent division by zero in some optimizers
+
+    # Create three instances of the Optimizer class with different parameters and predict
     opt1 = Optimizer(currentOptimizer, X, y, learningRate=lr1, epochs=epochs)
     params1 = opt1.predict(batchSize=bs1, rho=rho1, beta1=beta1_1, beta2=beta2_1, epsilon=epsilon)
     _, yPred1, mPred1, bPred1, historyParams1, mse1 = params1
@@ -208,11 +229,11 @@ def main():
     params3 = opt3.predict(batchSize=bs3, rho=rho3, beta1=beta1_3, beta2=beta2_3, epsilon=epsilon)
     _, yPred3, mPred3, bPred3, historyParams3, mse3 = params3
 
-    # Output
-    # Create a figure with two subplots: one for the regression lines and one for the error
+    # Create a figure with two subplots: one for the regression lines and one for the error (MSE)
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6))
 
-    # Plot each line from historyParams on ax1
+    # Plot the regression lines for each optimizer and its respective history
+    # For historyParams1 (results from the first optimizer)
     for i, params in enumerate(historyParams1[:-1]):
         if i % 10 != 0:
             continue
@@ -220,6 +241,7 @@ def main():
         yPredHistory = X * m + b
         ax1.plot(X, yPredHistory, color="#00FF00", linewidth=0.3)
 
+    # For historyParams2 (results from the second optimizer)
     for i, params in enumerate(historyParams2[:-1]):
         if i % 10 != 0:
             continue
@@ -227,6 +249,7 @@ def main():
         yPredHistory = X * m + b
         ax1.plot(X, yPredHistory, color="orange", linewidth=0.3)
 
+    # For historyParams3 (results from the third optimizer)
     for i, params in enumerate(historyParams3[:-1]):
         if i % 10 != 0:
             continue
@@ -234,10 +257,12 @@ def main():
         yPredHistory = X * m + b
         ax1.plot(X, yPredHistory, color="red", linewidth=0.15)
 
-    # Plot the regression lines on the first subplot (ax1)
+    # Plot the final regression line on the first subplot (ax1) for each optimizer
     label1 = f"Learning Rate: {lr1}, Batch Size: {bs1}, rho: {rho1}, Beta 1: {beta1_1}, Beta 2: {beta2_1}"
     label2 = f"Learning Rate: {lr2}, Batch Size: {bs2}, rho: {rho2}, Beta 1: {beta1_2}, Beta 2: {beta2_2}"
     label3 = f"Learning Rate: {lr3}, Batch Size: {bs3}, rho: {rho3}, Beta 1: {beta1_3}, Beta 2: {beta2_3}"
+
+    # Scatter plot of the data points
     ax1.scatter(X, y, alpha=0.6, s=10, label="Data Points")
     ax1.plot(X, yPred1, color="#00FF00", label=label1, linewidth=2)
     ax1.plot(X, yPred2, color="orange", label=label2, linewidth=2)
@@ -253,15 +278,14 @@ def main():
     ax2.plot(range(len(mse1)), mse1, color="#00FF00", label=label1)
     ax2.plot(range(len(mse2)), mse2, color="orange", label=label2)
     ax2.plot(range(len(mse3)), mse3, color="red", label=label3)
+
+    # Customize the second subplot (MSE plot)
     ax2.set_title("Mean Squared Error")
     ax2.set_xlabel("epochs")
     ax2.set_ylabel("MSE")
     ax2.legend()
 
-    # Adjust layout to make room for both subplots
     plt.tight_layout()
-
-    # Show the plot
     plt.show()
 
 if __name__ == '__main__':
